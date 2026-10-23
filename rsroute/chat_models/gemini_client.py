@@ -1,4 +1,4 @@
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional
 import requests
 
 from rsroute.base import BaseEstimator
@@ -8,24 +8,22 @@ from rsroute.urls import END_POINTS, URLS
 class ChatGemini(BaseEstimator):
     """ChatGemini client for RSRoute."""
 
-    endpoint: str = "/v1/gemini/chat"
-
     def __init__(
         self,
         model: Optional[str] = None,
-        master_key: str = None,
-        rsroute_url: str = None,
+        master_key: Optional[str] = None,
+        rsroute_url: Optional[str] = None,
         max_tokens: Optional[int] = None,
         timeout: int = 30,
         end_point: Optional[str] = None,
         thinking_level: Optional[Any] = None,
         thinking_budget: Optional[int] = None,
     ):
-        # url to send request
+        # Determine the target endpoint URL
         if rsroute_url is None:
             gemini_url = URLS.get("gemini")
         else:
-            gemini_url = f"{rsroute_url}/{END_POINTS.get('gemini')}"
+            gemini_url = f"{rsroute_url.rstrip('/')}/{END_POINTS.get('gemini').lstrip('/')}"
 
         super().__init__(
             rsroute_url=gemini_url,
