@@ -12,14 +12,25 @@ from rsroute.chat_models import ChatGemini
 
 Model = ChatGemini(
     model="gemini-3.5-flash-lite",
-    master_key="RSRoute_my_key",
     rsroute_url="http://0.0.0.0:8000", # your URL always default to this.
-
 )
 
 response = Model.invoke(query="What is GitHub?")
 print(response)
 ```
+
+### Feature
+* automatic `master_key` loading from .env
+* proper request handling
+* Agentic power (Future)
+
+### Valid `.env` name
+Any of the following variable names can be used in your `.env` file:
+* `rsroute_token` (or `RSROUTE_TOKEN`)
+* `master_key` (or `MASTER_KEY`)
+* `rsroute_key` (or `RSROUTE_KEY`)
+* `rsroute_master_key` (or `RSROUTE_MASTER_KEY`)
+
 
 ### Server
 RSRoute Server repository: [https://www.github.com/ItzRustam/rsroute](https://www.github.com/ItzRustam/rsroute)
