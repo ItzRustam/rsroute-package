@@ -1,0 +1,5 @@
+requests
+pydantic
+langchain
+langchain-core
+
