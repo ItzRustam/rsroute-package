@@ -8,14 +8,16 @@ Instead of managing disparate SDKs, raw HTTP requests, query parameters, and cus
 
 ### Code Example
 ```python
-from rsroute.chat_models import chatGemini
+from rsroute.chat_models import ChatGemini
 
-response = chatGemini(
-    query="What is GitHub?",
+Model = ChatGemini(
     model="gemini-3.5-flash-lite",
-    master_key="RSRoute_my_key"
+    master_key="RSRoute_my_key",
+    rsroute_url="http://0.0.0.0:8000", # your URL always default to this.
+
 )
 
+response = Model.invoke(query="What is GitHub?")
 print(response)
 ```
 
