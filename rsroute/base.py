@@ -190,7 +190,7 @@ class BaseEstimatorAgent(BaseEstimator):
         messages = [
             self.system_prompt,
             {"role": "user", "content": f"{query}"},
-            {"role": "assistant", "content": f"{result}"}
+            {"role": "assistant","content": str(result["content"]), "tool_calls": result["tool_calls"]}
         ]
 
         tool_used = 0
@@ -216,11 +216,11 @@ class BaseEstimatorAgent(BaseEstimator):
 
             result = super().invoke(messages)
             messages.append(
-                {"role": "assistant", "content": f"{result}"}
+                {"role": "assistant", "content": str(result["content"]), "tool_calls": result["tool_calls"]}
             )
 
             tool_used += 1
-
+        print(messages)
         return result
 
 
