@@ -1,3 +1,3 @@
-from . import chat_models
+from . import chat_models, agents
 
-__all__ = ["chat_models"]
+__all__ = ["chat_models", "agents"]

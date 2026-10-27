@@ -14,6 +14,7 @@ class ChatGemini(BaseEstimator):
         master_key: Optional[str] = None,
         rsroute_url: Optional[str] = None,
         max_tokens: Optional[int] = None,
+        system_prompt: Optional[Any] = None,
         timeout: int = 30,
         end_point: Optional[str] = None,
         thinking_level: Optional[Any] = None,
@@ -30,12 +31,13 @@ class ChatGemini(BaseEstimator):
             model=model,
             master_key=master_key,
             max_tokens=max_tokens,
+            system_prompt=system_prompt,
             timeout=timeout,
             end_point=end_point,
             thinking_level=thinking_level,
             thinking_budget=thinking_budget,
         )
 
-    def invoke(self, query: Optional[str] = None) -> Dict[Any, Any]:
+    def invoke(self, query: Optional[Any] = None) -> Dict[Any, Any]:
         """Send a request to RSRoute Gemini chat endpoint with the given query."""
         return super().invoke(query=query)

@@ -12,6 +12,7 @@ class ChatMistral(BaseEstimator):
         model: Optional[str] = None,
         master_key: Optional[str] = None,
         rsroute_url: Optional[str] = None,
+        system_prompt: Optional[Any] = None,
         max_tokens: Optional[int] = None,
         timeout: int = 30,
         end_point: Optional[str] = None,
@@ -26,11 +27,12 @@ class ChatMistral(BaseEstimator):
             rsroute_url=mistral_url,
             model=model,
             master_key=master_key,
+            system_prompt=system_prompt,
             max_tokens=max_tokens,
             timeout=timeout,
             end_point=end_point,
         )
 
-    def invoke(self, query: Optional[str] = None) -> Dict[Any, Any]:
+    def invoke(self, query: Optional[Any] = None) -> Dict[Any, Any]:
         """Send a request to RSRoute Mistral chat endpoint with the given query."""
         return super().invoke(query=query)
