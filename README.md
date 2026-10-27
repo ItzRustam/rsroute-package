@@ -6,7 +6,7 @@
 ### Why it is
 Instead of managing disparate SDKs, raw HTTP requests, query parameters, and custom endpoints manually for each provider, `rsroute` provides a simple, unified wrapper so you can connect to your RSRoute server with minimal code.
 
-### Code Example
+### Code Example - ChatModel
 ```python
 from rsroute.chat_models import ChatGemini
 
@@ -19,10 +19,23 @@ response = Model.invoke(query="What is GitHub?")
 print(response)
 ```
 
+### Code Example - Agents
+```python
+from rsroute.agents import GeminiAgent
+
+agent = GeminiAgents(
+    tools=[web_search], # your tools
+    max_tool_calls=12 # Default to 10
+)
+
+response = agent.invoke(query="Latest News of GPT-6 Astra")
+print(response)
+```
+
 ### Feature
 * automatic `master_key` loading from .env
 * proper request handling
-* Agentic power (Future)
+* Agentic power
 
 ### Valid `.env` name
 Any of the following variable names can be used in your `.env` file:
