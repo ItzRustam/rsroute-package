@@ -19,6 +19,6 @@ END_POINTS = {
     "root": "/",
     "gemini": "/v1/gemini/chat",
     "mistral": "/v1/mistral/chat",
-    "gemini_agent": "/v1/mistral/agent"
+    "gemini_agent": "/v1/gemini/agent"
 }
 
