@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, List
 from rsroute.base import BaseEstimatorAgent
 from rsroute.urls import END_POINTS, URLS
 from langchain_core.tools import StructuredTool
+import warnings
 
 
 class GeminiAgent(BaseEstimatorAgent):
@@ -16,13 +17,15 @@ class GeminiAgent(BaseEstimatorAgent):
         tools: List[StructuredTool] = None,
         master_key: Optional[str] = None,
         rsroute_url: Optional[str] = None,
+        temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         system_prompt: Optional[Any] = None,
-        max_tool_calls : Optional[int] = 10,
+        max_tool_calls: Optional[int] = 10,
         timeout: int = 120,
         end_point: Optional[str] = None,
         thinking_level: Optional[Any] = None,
         thinking_budget: Optional[int] = None,
+        **kwargs: Any,
     ):
         # Determine the target endpoint URL
         if rsroute_url is None:
@@ -36,12 +39,14 @@ class GeminiAgent(BaseEstimatorAgent):
             max_tool_calls=max_tool_calls,
             tools=tools,
             master_key=master_key,
+            temperature=temperature,
             max_tokens=max_tokens,
             system_prompt=system_prompt,
             timeout=timeout,
             end_point=end_point,
             thinking_level=thinking_level,
             thinking_budget=thinking_budget,
+            **kwargs,
         )
 
     def ainvoke(self, query: Optional[Any] = None) -> Dict[Any, Any]:
@@ -50,4 +55,23 @@ class GeminiAgent(BaseEstimatorAgent):
 
     def invoke(self, query=None):
         """Generate response from Agent with ReAct Loop"""
-        return super().invoke(query)
+        results: Dict[str, Any] = super().invoke(query)
+        if not isinstance(results.get("content"), list):
+            return results
+        if len(results.get("content", [])) != 1:
+            return results
+
+        try:
+            result = results.copy()  # Safety copy
+            content: Dict[str, Any] = result.get("content")[0]
+            text_result = content.get("text")
+            extras = content.get("extras")
+
+            result["content"] = text_result
+            result["extras"] = extras
+
+            return result
+        except Exception as E:
+            warnings.warn(f"Got Error while extracting the information, {str(E)}")
+
+        return results  # after Exception
