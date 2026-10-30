@@ -8,27 +8,51 @@ Instead of managing disparate SDKs, raw HTTP requests, query parameters, and cus
 
 ### Code Example - ChatModel
 ```python
-from rsroute.chat_models import ChatGemini
+from rsroute.chat_models import ChatGemini, ChatMistral, ChatGroq
 
-Model = ChatGemini(
+# Gemini
+gemini_model = ChatGemini(
     model="gemini-3.5-flash-lite",
     rsroute_url="http://0.0.0.0:8000", # your URL always default to this.
 )
+response = gemini_model.invoke(query="What is GitHub?")
+print(response)
 
-response = Model.invoke(query="What is GitHub?")
+# Groq
+groq_model = ChatGroq(
+    model="openai/gpt-oss-120b",
+    temperature=0.7,
+)
+response = groq_model.invoke(query="Hello Groq!")
 print(response)
 ```
 
 ### Code Example - Agents
 ```python
-from rsroute.agents import GeminiAgent
+from rsroute.agents import GeminiAgent, MistralAgent, GroqAgent
 
-agent = GeminiAgents(
+# Gemini Agent
+gemini_agent = GeminiAgent(
     tools=[web_search], # your tools
     max_tool_calls=12 # Default to 10
 )
+response = gemini_agent.invoke(query="Latest News of GPT-6 Astra")
+print(response)
 
-response = agent.invoke(query="Latest News of GPT-6 Astra")
+# Mistral Agent
+mistral_agent = MistralAgent(
+    tools=[web_search],
+    model="mistral-small-2603"
+)
+response = mistral_agent.invoke(query="What is the weather in Paris?")
+print(response)
+
+# Groq Agent
+groq_agent = GroqAgent(
+    tools=[web_search],
+    model="openai/gpt-oss-120b"
+)
+response = groq_agent.invoke(query="Compute 42 * 42")
 print(response)
 ```
 
