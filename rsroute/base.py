@@ -5,6 +5,7 @@ import requests
 from langchain_core.tools import StructuredTool
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from rich import print
+import warnings
 
 def _load_env_file(dotenv_path: str = ".env") -> None:
     """Fallback .env file loader if python-dotenv is not installed."""
@@ -107,17 +108,32 @@ class BaseEstimator(ABC):
             if value is not None:
                 self.request_data[key] = value
 
+    def get_params(self) -> Dict[str, Any]:
+        """Return the initialized parameters for the model (excluding master_key)."""
+        params = self.request_data.copy()
+        params.pop("master_key", None)
+        return params
+
+    def __call__(self, query: Optional[Any] = None) -> Dict[Any, Any]:
+        """Callable interface forwarding to invoke."""
+        return self.invoke(query=query)
+
+    def generate(self, query: Optional[Any] = None) -> Dict[Any, Any]:
+        """Generate response forwarding to invoke."""
+        return self.invoke(query=query)
+
     def invoke(self, query: Optional[Any] = None) -> Dict[Any, Any]:
         """Invoke the model endpoint with a query."""
         request_data = self.request_data.copy()
 
         if query is not None:
-            if self.system_prompt == False:
+            if isinstance(query, list):
+                request_data["query"] = query
+            elif self.system_prompt == False:
                 request_data["query"] = [
                     {"role": "user", "content": f"{query}"}
                 ]
             else:
-                
                 request_data["query"] = [
                     self.system_prompt,
                     {
@@ -166,15 +182,16 @@ class BaseEstimatorAgent(BaseEstimator):
         self.tools_info = self.__convert_tool_to_dict(tools=tools)
 
 
-        super().__init__(rsroute_url=rsroute_url,
-                         model=model,
-                         timeout=timeout,
-                         master_key=master_key,
-                         max_tokens=max_tokens,
-                         tools_info=self.tools_info,
-                         system_prompt=system_prompt,
-                         kwargs=kwargs
-                         )
+        super().__init__(
+            rsroute_url=rsroute_url,
+            model=model,
+            timeout=timeout,
+            master_key=master_key,
+            max_tokens=max_tokens,
+            tools_info=self.tools_info,
+            system_prompt=system_prompt,
+            **kwargs,
+        )
 
         # Important Info to Save
         self.max_tool_calls = max_tool_calls
@@ -185,24 +202,44 @@ class BaseEstimatorAgent(BaseEstimator):
 
     def invoke(self, query = None):
         result =  super().invoke(query)
+
+        if not result["tool_calls"]:
+            return result
         # tools mapping 
         tools_map = self.__map_tools(tools=self.tools)
-        messages = [
-            self.system_prompt,
+        messages = []
+        if self.system_prompt:
+            messages.append(self.system_prompt)
+        messages.extend([
             {"role": "user", "content": f"{query}"},
-            {"role": "assistant","content": str(result["content"]), "tool_calls": result["tool_calls"]}
-        ]
+            {"role": "assistant", "content": str(result.get("content", "")), "tool_calls": result.get("tool_calls", [])}
+        ])
+        usage = result.get("usage_metadata")
+        if isinstance(usage, dict):
+            try:
+                input_tokens = usage.get("input_tokens", 0)
+                output_tokens = usage.get("output_tokens", 0)
+                total_tokens = input_tokens + output_tokens
+            except (TypeError, ValueError):
+                warnings.warn("Error while extracting tokens from usage_metadata.")
+                input_tokens = output_tokens = total_tokens = None
+        else:
+            input_tokens = output_tokens = total_tokens = None
 
         tool_used = 0
-        while result["tool_calls"]:
-            if tool_used > self.max_tool_calls:
+        while result.get("tool_calls"):
+            if tool_used >= self.max_tool_calls:
                 raise BufferError(f"Agent Called More Tool than max_tool_calls which is set to {self.max_tool_calls}")
 
             tool_call_info = result["tool_calls"][0]
 
-
             # choosed tool
             chosen_tool = tools_map.get(tool_call_info.get("name"))
+            if chosen_tool is None:
+                raise ValueError(f"Tool '{tool_call_info.get('name')}' not found in mapped tools")
+
+            if not tool_call_info.get("args"):
+                raise ValueError("Model provided no parameters for Tool call.")
 
             tool_result = chosen_tool.invoke(tool_call_info.get("args"))
 
@@ -216,15 +253,28 @@ class BaseEstimatorAgent(BaseEstimator):
 
             result = super().invoke(messages)
             messages.append(
-                {"role": "assistant", "content": str(result["content"]), "tool_calls": result["tool_calls"]}
+                {"role": "assistant", "content": str(result.get("content", "")), "tool_calls": result.get("tool_calls", [])}
             )
 
+            # usage update from new step
+            step_usage = result.get("usage_metadata")
+            if isinstance(step_usage, dict):
+                try:
+                    input_tokens = (input_tokens or 0) + step_usage.get("input_tokens", 0)
+                    output_tokens = (output_tokens or 0) + step_usage.get("output_tokens", 0)
+                    total_tokens = input_tokens + output_tokens
+                except (TypeError, ValueError):
+                    warnings.warn("Error while updating tokens from usage_metadata.")
+
             tool_used += 1
-        print(messages)
+
+        if input_tokens is not None:
+            if not isinstance(result.get("usage_metadata"), dict):
+                result["usage_metadata"] = {}
+            result["usage_metadata"]["input_tokens"] = input_tokens
+            result["usage_metadata"]["output_tokens"] = output_tokens
+            result["usage_metadata"]["total_tokens"] = total_tokens
         return result
-
-
-
 
     def __convert_tool_to_dict(self, tools: List[StructuredTool]) -> List[Dict[str, str]]:
         tools_info = []
