@@ -8,7 +8,7 @@ Instead of managing disparate SDKs, raw HTTP requests, query parameters, and cus
 
 ### Code Example - ChatModel
 ```python
-from rsroute.chat_models import ChatGemini, ChatMistral, ChatGroq
+from rsroute.chat_models import ChatGemini, ChatMistral, ChatGroq, ChatOpenRouter
 
 # Gemini
 gemini_model = ChatGemini(
@@ -25,11 +25,19 @@ groq_model = ChatGroq(
 )
 response = groq_model.invoke(query="Hello Groq!")
 print(response)
+
+# OpenRouter
+openrouter_model = ChatOpenRouter(
+    model="deepseek/deepseek-v4.1-flash",
+    temperature=0.7,
+)
+response = openrouter_model.invoke(query="Hello OpenRouter!")
+print(response)
 ```
 
 ### Code Example - Agents
 ```python
-from rsroute.agents import GeminiAgent, MistralAgent, GroqAgent
+from rsroute.agents import GeminiAgent, MistralAgent, GroqAgent, OpenRouterAgent
 
 # Gemini Agent
 gemini_agent = GeminiAgent(
@@ -54,6 +62,14 @@ groq_agent = GroqAgent(
 )
 response = groq_agent.invoke(query="Compute 42 * 42")
 print(response)
+
+# OpenRouter Agent
+openrouter_agent = OpenRouterAgent(
+    tools=[web_search],
+    model="deepseek/deepseek-v4.1-flash"
+)
+response = openrouter_agent.invoke(query="Search latest news")
+print(response)
 ```
 
 ### Feature
@@ -70,5 +86,6 @@ Any of the following variable names can be used in your `.env` file:
 
 
 ### Server
-RSRoute Server repository: [https://www.github.com/ItzRustam/rsroute](https://www.github.com/ItzRustam/rsroute)
+RSRoute Server repository: [RSRoute GitHub](https://www.github.com/ItzRustam/rsroute)
 
+RSRoute website: [RSRoute Web](https://www.rsroute.freedev.app)

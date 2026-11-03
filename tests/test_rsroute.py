@@ -3,8 +3,22 @@ from unittest.mock import patch, MagicMock
 from langchain_core.tools import tool, StructuredTool
 
 from rsroute.urls import URLS, END_POINTS
-from rsroute.chat_models import ChatGemini, ChatMistral, ChatMistralAI, MistralAI, ChatGroq
-from rsroute.agents import GeminiAgent, MistralAgent, GroqAgent
+from rsroute.chat_models import (
+    ChatGemini,
+    ChatMistral,
+    ChatMistralAI,
+    MistralAI,
+    ChatGroq,
+    ChatOpenRouter,
+    OpenRouter,
+)
+from rsroute.agents import (
+    GeminiAgent,
+    MistralAgent,
+    GroqAgent,
+    OpenRouterAgent,
+    ChatOpenRouterAgent,
+)
 from rsroute.base import BaseEstimator, BaseEstimatorAgent
 
 
@@ -25,10 +39,18 @@ class TestUrls(unittest.TestCase):
         self.assertEqual(URLS["groq"], "http://0.0.0.0:8000/v1/groq/chat")
         self.assertEqual(URLS["mistral_agent"], "http://0.0.0.0:8000/v1/mistral/agent")
         self.assertEqual(URLS["groq_agent"], "http://0.0.0.0:8000/v1/groq/agent")
+        self.assertEqual(URLS["openrouter"], "http://0.0.0.0:8000/v1/openrouter/chat")
+        self.assertEqual(URLS["openrouter_agent"], "http://0.0.0.0:8000/v1/openrouter/agent")
+        self.assertEqual(URLS["openrouter_parameters"], "http://0.0.0.0:8000/v1/openrouter/parameters")
+        self.assertEqual(URLS["openrouter_parameter"], "http://0.0.0.0:8000/v1/openrouter/parameter")
 
         self.assertEqual(END_POINTS["groq"], "/v1/groq/chat")
         self.assertEqual(END_POINTS["mistral_agent"], "/v1/mistral/agent")
         self.assertEqual(END_POINTS["groq_agent"], "/v1/groq/agent")
+        self.assertEqual(END_POINTS["openrouter"], "/v1/openrouter/chat")
+        self.assertEqual(END_POINTS["openrouter_agent"], "/v1/openrouter/agent")
+        self.assertEqual(END_POINTS["openrouter_parameters"], "/v1/openrouter/parameters")
+        self.assertEqual(END_POINTS["openrouter_parameter"], "/v1/openrouter/parameter")
 
 
 class TestChatGroq(unittest.TestCase):
@@ -368,6 +390,218 @@ class TestTopPRemovedAcrossAllModels(unittest.TestCase):
     def test_groq_agent_no_top_p(self):
         agent = GroqAgent(tools=[add_numbers], master_key="RSRoute_test_key")
         self.assertNotIn("top_p", agent.request_data)
+
+    def test_chat_openrouter_no_top_p(self):
+        client = ChatOpenRouter(master_key="RSRoute_test_key", temperature=0.7)
+        self.assertNotIn("top_p", client.request_data)
+
+    def test_openrouter_agent_no_top_p(self):
+        agent = OpenRouterAgent(tools=[add_numbers], master_key="RSRoute_test_key")
+        self.assertNotIn("top_p", agent.request_data)
+
+
+class TestChatOpenRouter(unittest.TestCase):
+    def test_default_initialization(self):
+        client = ChatOpenRouter(master_key="RSRoute_test_key")
+        self.assertEqual(client.rsroute_url, "http://0.0.0.0:8000/v1/openrouter/chat")
+        self.assertEqual(client.request_data["master_key"], "RSRoute_test_key")
+        self.assertNotIn("model", client.request_data)
+        self.assertNotIn("top_p", client.request_data)
+        self.assertNotIn("thinking_level", client.request_data)
+        self.assertNotIn("thinking_budget", client.request_data)
+
+    def test_custom_parameters(self):
+        client = ChatOpenRouter(
+            master_key="RSRoute_test_key",
+            model="deepseek/deepseek-v4.1-flash",
+            temperature=0.7,
+            max_tokens=4096,
+            app_title="RSRoute",
+            app_url="https://www.rsroute.freedev.app/",
+            app_categories=["ai", "developer-tools"],
+            max_retries=2,
+            providers={"order": ["OpenAI"]},
+            end_point="http://custom-proxy/v1",
+            timeout=45,
+            rsroute_url="http://custom-server:9000",
+        )
+        self.assertEqual(client.rsroute_url, "http://custom-server:9000/v1/openrouter/chat")
+        self.assertEqual(client.timeout, 45)
+        self.assertEqual(client.request_data["model"], "deepseek/deepseek-v4.1-flash")
+        self.assertEqual(client.request_data["temperature"], 0.7)
+        self.assertEqual(client.request_data["max_tokens"], 4096)
+        self.assertEqual(client.request_data["app_title"], "RSRoute")
+        self.assertEqual(client.request_data["app_url"], "https://www.rsroute.freedev.app/")
+        self.assertEqual(client.request_data["app_categories"], ["ai", "developer-tools"])
+        self.assertEqual(client.request_data["max_retries"], 2)
+        self.assertEqual(client.request_data["providers"], {"order": ["OpenAI"]})
+        self.assertEqual(client.request_data["end_point"], "http://custom-proxy/v1")
+        self.assertNotIn("top_p", client.request_data)
+        self.assertNotIn("thinking_level", client.request_data)
+        self.assertNotIn("thinking_budget", client.request_data)
+
+    def test_get_params(self):
+        client = ChatOpenRouter(
+            master_key="RSRoute_test_key",
+            model="deepseek/deepseek-v4.1-flash",
+            temperature=0.7,
+            app_title="RSRoute",
+        )
+        params = client.get_params()
+        self.assertNotIn("master_key", params)
+        self.assertNotIn("top_p", params)
+        self.assertEqual(params["model"], "deepseek/deepseek-v4.1-flash")
+        self.assertEqual(params["temperature"], 0.7)
+        self.assertEqual(params["app_title"], "RSRoute")
+
+    @patch("requests.post")
+    def test_invoke_string_query(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "content": "Hello from OpenRouter!",
+            "query": [{"role": "user", "content": "Hi"}],
+            "error": "No Error Found",
+            "login": True,
+            "auth": True,
+        }
+        mock_post.return_value = mock_response
+
+        client = ChatOpenRouter(master_key="RSRoute_test_key")
+        result = client.invoke("Hi")
+
+        mock_post.assert_called_once()
+        _, kwargs = mock_post.call_args
+        self.assertEqual(
+            kwargs["json"]["query"],
+            [{"role": "user", "content": "Hi"}]
+        )
+        self.assertEqual(result["content"], "Hello from OpenRouter!")
+
+    @patch("requests.post")
+    def test_call_and_generate(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"content": "ok"}
+        mock_post.return_value = mock_response
+
+        client = ChatOpenRouter(master_key="RSRoute_test_key")
+        res1 = client("test 1")
+        res2 = client.generate("test 2")
+        self.assertEqual(res1["content"], "ok")
+        self.assertEqual(res2["content"], "ok")
+        self.assertEqual(mock_post.call_count, 2)
+
+    def test_alias(self):
+        self.assertIs(OpenRouter, ChatOpenRouter)
+
+
+class TestOpenRouterAgent(unittest.TestCase):
+    def test_initialization(self):
+        agent = OpenRouterAgent(
+            tools=[echo_text],
+            master_key="RSRoute_test_key",
+            model="deepseek/deepseek-v4.1-flash",
+            temperature=0.7,
+            max_tokens=4096,
+            app_title="RSRoute",
+            app_url="https://www.rsroute.freedev.app/",
+            app_categories=["ai"],
+            max_retries=2,
+            providers={"order": ["OpenAI"]},
+        )
+        self.assertEqual(agent.rsroute_url, "http://0.0.0.0:8000/v1/openrouter/agent")
+        self.assertEqual(agent.request_data["model"], "deepseek/deepseek-v4.1-flash")
+        self.assertEqual(agent.request_data["temperature"], 0.7)
+        self.assertEqual(agent.request_data["max_tokens"], 4096)
+        self.assertEqual(agent.request_data["app_title"], "RSRoute")
+        self.assertEqual(agent.request_data["app_url"], "https://www.rsroute.freedev.app/")
+        self.assertEqual(agent.request_data["app_categories"], ["ai"])
+        self.assertEqual(agent.request_data["max_retries"], 2)
+        self.assertEqual(agent.request_data["providers"], {"order": ["OpenAI"]})
+        self.assertEqual(
+            agent.tools_info,
+            [{"name": "echo_text", "description": "Echoes input text."}]
+        )
+        self.assertNotIn("top_p", agent.request_data)
+        self.assertNotIn("thinking_level", agent.request_data)
+        self.assertNotIn("thinking_budget", agent.request_data)
+
+    def test_custom_rsroute_url(self):
+        agent = OpenRouterAgent(
+            tools=[echo_text],
+            master_key="RSRoute_test_key",
+            rsroute_url="http://my-host:8080/",
+        )
+        self.assertEqual(agent.rsroute_url, "http://my-host:8080/v1/openrouter/agent")
+
+    @patch("requests.post")
+    def test_ainvoke_direct_call(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "content": "Direct response without tool loop",
+            "tool_calls": [{"name": "echo_text", "args": {"text": "hi"}, "id": "1", "type": "tool_call"}],
+        }
+        mock_post.return_value = mock_response
+
+        agent = OpenRouterAgent(
+            tools=[echo_text],
+            master_key="RSRoute_test_key",
+        )
+        result = agent.ainvoke("hi")
+        self.assertEqual(result["content"], "Direct response without tool loop")
+        self.assertEqual(len(result["tool_calls"]), 1)
+        self.assertEqual(mock_post.call_count, 1)
+
+    @patch("requests.post")
+    def test_tool_loop_execution(self, mock_post):
+        resp1 = MagicMock()
+        resp1.json.return_value = {
+            "content": "",
+            "tool_calls": [{"name": "echo_text", "args": {"text": "hello openrouter"}, "id": "call_1", "type": "tool_call"}],
+        }
+        resp2 = MagicMock()
+        resp2.json.return_value = {
+            "content": "echoed: hello openrouter",
+            "tool_calls": [],
+        }
+        mock_post.side_effect = [resp1, resp2]
+
+        agent = OpenRouterAgent(
+            tools=[echo_text],
+            master_key="RSRoute_test_key",
+        )
+        result = agent.invoke("Say hello")
+        self.assertEqual(result["content"], "echoed: hello openrouter")
+        self.assertEqual(mock_post.call_count, 2)
+
+    @patch("requests.post")
+    def test_invoke_unwraps_single_list_content(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "content": [{"text": "Extracted answer", "extras": {"thought": "deep"}}],
+            "tool_calls": [],
+        }
+        mock_post.return_value = mock_response
+
+        agent = OpenRouterAgent(tools=[add_numbers], master_key="RSRoute_test_key")
+        result = agent.invoke("What is life?")
+        self.assertEqual(result["content"], "Extracted answer")
+        self.assertEqual(result["extras"], {"thought": "deep"})
+
+    @patch("requests.post")
+    def test_invoke_preserves_string_content(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "content": "Regular text response",
+            "tool_calls": [],
+        }
+        mock_post.return_value = mock_response
+
+        agent = OpenRouterAgent(tools=[add_numbers], master_key="RSRoute_test_key")
+        result = agent.invoke("Hello")
+        self.assertEqual(result["content"], "Regular text response")
+
+    def test_alias(self):
+        self.assertIs(ChatOpenRouterAgent, OpenRouterAgent)
 
 
 if __name__ == "__main__":
