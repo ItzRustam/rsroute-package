@@ -202,6 +202,7 @@ class BaseEstimatorAgent(BaseEstimator):
 
     def invoke(self, query = None):
         result =  super().invoke(query)
+        tool_used_names = []
 
         if not result["tool_calls"]:
             return result
@@ -243,6 +244,7 @@ class BaseEstimatorAgent(BaseEstimator):
 
             tool_result = chosen_tool.invoke(tool_call_info.get("args"))
 
+            tool_used_names.append(chosen_tool.name)
             messages.append(
                 {
                     "role": "tool",
@@ -274,6 +276,8 @@ class BaseEstimatorAgent(BaseEstimator):
             result["usage_metadata"]["input_tokens"] = input_tokens
             result["usage_metadata"]["output_tokens"] = output_tokens
             result["usage_metadata"]["total_tokens"] = total_tokens
+
+        result["tools_used"] = tool_used_names
         return result
 
     def __convert_tool_to_dict(self, tools: List[StructuredTool]) -> List[Dict[str, str]]:
