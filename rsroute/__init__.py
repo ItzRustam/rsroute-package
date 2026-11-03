@@ -1,7 +1,21 @@
 from . import chat_models, agents
 from .base import BaseEstimator, BaseEstimatorAgent
-from .chat_models import ChatGemini, ChatMistral, ChatMistralAI, MistralAI, ChatGroq
-from .agents import GeminiAgent, MistralAgent, GroqAgent
+from .chat_models import (
+    ChatGemini,
+    ChatMistral,
+    ChatMistralAI,
+    MistralAI,
+    ChatGroq,
+    ChatOpenRouter,
+    OpenRouter,
+)
+from .agents import (
+    GeminiAgent,
+    MistralAgent,
+    GroqAgent,
+    OpenRouterAgent,
+    ChatOpenRouterAgent,
+)
 
 __all__ = [
     "chat_models",
@@ -13,7 +27,11 @@ __all__ = [
     "ChatMistralAI",
     "MistralAI",
     "ChatGroq",
+    "ChatOpenRouter",
+    "OpenRouter",
     "GeminiAgent",
     "MistralAgent",
     "GroqAgent",
+    "OpenRouterAgent",
+    "ChatOpenRouterAgent",
 ]
