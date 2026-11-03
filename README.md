@@ -86,5 +86,6 @@ Any of the following variable names can be used in your `.env` file:
 
 
 ### Server
-RSRoute Server repository: [https://www.github.com/ItzRustam/rsroute](https://www.github.com/ItzRustam/rsroute)
+RSRoute Server repository: [RSRoute GitHub](https://www.github.com/ItzRustam/rsroute)
 
+RSRoute website: [RSRoute Web](https://www.rsroute.freedev.app)
