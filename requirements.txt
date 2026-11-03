@@ -1,5 +1,4 @@
-requests
-pydantic
-langchain
-langchain-core
-python-dotenv
+requests==2.34.2
+langchain-core==1.6.10
+rich==15.0.0
+python-dotenv==1.2.2
