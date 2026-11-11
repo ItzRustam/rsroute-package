@@ -8,6 +8,8 @@ from .chat_models import (
     ChatGroq,
     ChatOpenRouter,
     OpenRouter,
+    ChatGPT,
+    ChatOpenAI,
 )
 from .agents import (
     GeminiAgent,
@@ -15,6 +17,9 @@ from .agents import (
     GroqAgent,
     OpenRouterAgent,
     ChatOpenRouterAgent,
+    GPTAgent,
+    OpenAIAgent,
+    ChatGPTAgent,
 )
 
 __all__ = [
@@ -29,9 +34,14 @@ __all__ = [
     "ChatGroq",
     "ChatOpenRouter",
     "OpenRouter",
+    "ChatGPT",
+    "ChatOpenAI",
     "GeminiAgent",
     "MistralAgent",
     "GroqAgent",
     "OpenRouterAgent",
     "ChatOpenRouterAgent",
+    "GPTAgent",
+    "OpenAIAgent",
+    "ChatGPTAgent",
 ]

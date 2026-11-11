@@ -3,6 +3,7 @@ GEMINI_URL = "http://0.0.0.0:8000/v1/gemini/chat"
 MISTRAL_URL = "http://0.0.0.0:8000/v1/mistral/chat"
 GROQ_URL = "http://0.0.0.0:8000/v1/groq/chat"
 OPENROUTER_URL = "http://0.0.0.0:8000/v1/openrouter/chat"
+OPENAI_URL = "http://0.0.0.0:8000/v1/openai/chat"
 
 
 # Agentic Routes
@@ -10,7 +11,7 @@ GEMINI_AGENT = "http://0.0.0.0:8000/v1/gemini/agent"
 MISTRAL_AGENT = "http://0.0.0.0:8000/v1/mistral/agent"
 GROQ_AGENT = "http://0.0.0.0:8000/v1/groq/agent"
 OPENROUTER_AGENT = "http://0.0.0.0:8000/v1/openrouter/agent"
-
+OPENAI_AGENT = "http://0.0.0.0:8000/v1/openai/agent"
 
 
 URLS = {
@@ -23,6 +24,8 @@ URLS = {
     "mistral_agent": MISTRAL_AGENT,
     "groq_agent": GROQ_AGENT,
     "openrouter_agent": OPENROUTER_AGENT,
+    "openai": OPENAI_URL,
+    "openai_agent": OPENAI_AGENT
 }
 
 
@@ -36,4 +39,6 @@ END_POINTS = {
     "mistral_agent": "/v1/mistral/agent",
     "groq_agent": "/v1/groq/agent",
     "openrouter_agent": "/v1/openrouter/agent",
+    "openai": "/v1/openai/chat",
+    "openai_agent": "/v1/openai/agent"
 }

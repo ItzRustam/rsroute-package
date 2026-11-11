@@ -2,6 +2,7 @@ from rsroute.chat_models.gemini_client import ChatGemini
 from rsroute.chat_models.mistral_client import ChatMistral, ChatMistralAI, MistralAI
 from rsroute.chat_models.groq_client import ChatGroq
 from rsroute.chat_models.openrouter_client import ChatOpenRouter, OpenRouter
+from rsroute.chat_models.openai_client import ChatGPT, ChatOpenAI
 
 __all__ = [
     "ChatGemini",
@@ -11,4 +12,6 @@ __all__ = [
     "ChatGroq",
     "ChatOpenRouter",
     "OpenRouter",
+    "ChatGPT",
+    "ChatOpenAI",
 ]

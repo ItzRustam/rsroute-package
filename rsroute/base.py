@@ -6,6 +6,7 @@ from langchain_core.tools import StructuredTool
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from rich import print
 import warnings
+from dotenv import load_dotenv
 
 def _load_env_file(dotenv_path: str = ".env") -> None:
     """Fallback .env file loader if python-dotenv is not installed."""
@@ -24,6 +25,26 @@ def _load_env_file(dotenv_path: str = ".env") -> None:
         except Exception:
             pass
 
+def get_org_id():
+    """automatically pick OpenAI Org Id from .env"""
+    try:
+        load_dotenv()
+
+        candidates = [
+            "org_id", "ORG_ID",
+            "organization_id", "ORGANIZATION_ID",
+            "openai_org_id", "OPENAI_ORG_ID"
+        ]
+
+        for candidate in candidates:
+            val = os.getenv(candidate)
+
+            if val:
+                return val
+
+        return None
+    except ModuleNotFoundError:
+        raise "No Module Found dotenv"
 
 def find_master_key(master_key: Optional[str] = None) -> Optional[str]:
     """Search for rsroute_token, master_key, or rsroute_key in arguments, environment, or .env."""
