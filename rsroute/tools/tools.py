@@ -241,25 +241,49 @@ def check_server_online(timeout: int = 5) -> str:
     """Check whether the RSRoute root server is online.
 
     This tool always checks the root server URL defined in
-    ``rsroute.urls.URLS["root"]``.
+    ``rsroute.urls.URLS["root"]`` and includes the server's response.
 
     Args:
         timeout: Request timeout in seconds. Defaults to 5.
 
     Returns:
-        str: ``"Server is Online at <server_url>"`` if the root server responds
-            with HTTP 200. Otherwise returns
-            ``"Server is Offline Url tried <server_url>"``.
+        str: If the root server responds with HTTP 200, returns
+            ``"Server is Online at <server_url>"`` followed by the server
+            response. Otherwise returns
+            ``"Server is Offline Url tried <server_url>"`` with response/error
+            details when available.
     """
     url = URLS.get("root")
 
+    def _format_response(response: requests.Response) -> str:
+        content_type = response.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            try:
+                data = response.json()
+                if isinstance(data, (dict, list)):
+                    return json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True)
+                return str(data)
+            except ValueError:
+                pass
+        text = response.text.strip()
+        return text if text else "<empty response>"
+
     try:
         response = requests.get(url, timeout=timeout)
+        server_response = _format_response(response)
         if response.status_code == 200:
-            return f"Server is Online at {url}"
-        return f"Server is Offline Url tried {url}"
-    except requests.RequestException:
-        return f"Server is Offline Url tried {url}"
+            return (
+                f"Server is Online at {url}\n"
+                f"[status_code] {response.status_code}\n"
+                f"[server_response]\n{server_response}"
+            )
+        return (
+            f"Server is Offline Url tried {url}\n"
+            f"[status_code] {response.status_code}\n"
+            f"[server_response]\n{server_response}"
+        )
+    except requests.RequestException as E:
+        return f"Server is Offline Url tried {url}\n[error] {E}"
 
 
 @tool
