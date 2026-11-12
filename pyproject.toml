@@ -1,6 +1,6 @@
 [project]
 name = "rsroute"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python Package Wrapper for RSRoute server"
 readme = "README.md"
 authors = [
