@@ -11,6 +11,7 @@ dependencies = [
     "requests",
     "langchain-core",
     "rich",
+    "python-dotenv",
 ]
 
 [build-system]
