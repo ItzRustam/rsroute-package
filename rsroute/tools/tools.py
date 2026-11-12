@@ -236,30 +236,26 @@ def run_python_file(file_path: str, timeout: int = 30) -> str:
 
 
 @tool
-def check_server_online(server: str = "root", timeout: int = 5) -> str:
-    """Check whether an RSRoute server endpoint is online.
+def check_server_online(timeout: int = 5) -> str:
+    """Check whether the RSRoute root server is online.
 
-    The URL is resolved from ``rsroute.urls.URLS`` using the provided server
-    key (for example, ``"root"``, ``"gemini"``, ``"openai_agent"``). You may
-    also pass a full HTTP/HTTPS URL directly.
+    This tool always checks the root server URL defined in
+    ``rsroute.urls.URLS["root"]``.
 
     Args:
-        server: A key from ``rsroute.urls.URLS`` or a direct URL to check.
-            Defaults to ``"root"``.
         timeout: Request timeout in seconds. Defaults to 5.
 
     Returns:
-        str: A status message indicating whether the server is online,
-            including the checked URL and HTTP status code when available.
+        str: ``"Server is Online at <server_url>"`` if the root server responds
+            with HTTP 200. Otherwise returns
+            ``"Server is Offline Url tried <server_url>"``.
     """
-    url = URLS.get(server, server)
-    if not isinstance(url, str) or not url.startswith(("http://", "https://")):
-        return f"Invalid server or URL: {server}"
+    url = URLS.get("root")
 
     try:
         response = requests.get(url, timeout=timeout)
-        if 200 <= response.status_code < 400:
-            return f"Online: {url} (status {response.status_code})"
-        return f"Reachable but not healthy: {url} (status {response.status_code})"
-    except requests.RequestException as E:
-        return f"Offline or unreachable: {url} ({E})"
+        if response.status_code == 200:
+            return f"Server is Online at {url}"
+        return f"Server is Offline Url tried {url}"
+    except requests.RequestException:
+        return f"Server is Offline Url tried {url}"
