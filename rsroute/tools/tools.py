@@ -1,5 +1,6 @@
 """Some Prebuilt tools to make work more easier"""
 
+import json
 import os
 import subprocess
 import sys
@@ -11,7 +12,7 @@ from ddgs import DDGS
 from langchain_core.tools import tool
 import wikipediaapi
 
-from rsroute.urls import URLS
+from rsroute.urls import PARAMS_URL, URLS
 
 
 @tool
@@ -259,3 +260,58 @@ def check_server_online(timeout: int = 5) -> str:
         return f"Server is Offline Url tried {url}"
     except requests.RequestException:
         return f"Server is Offline Url tried {url}"
+
+
+@tool
+def get_providers_params(provider: str, timeout: int = 5) -> str:
+    """Fetch RSRoute provider parameter information for a supported provider.
+
+    Use this tool to retrieve the provider-specific parameters exposed by the
+    RSRoute server (for example, supported models/options metadata). The server
+    response is expected to be a dictionary and is returned as a formatted JSON
+    string.
+
+    Allowed providers (pass one of these values as ``provider``):
+        - ``"gemini"``
+        - ``"mistral"``
+        - ``"openrouter"``
+        - ``"openai"``
+        - ``"groq"``
+
+    Args:
+        provider: Provider name to query. Must be one of the allowed providers
+            listed above. The value is matched case-insensitively.
+        timeout: Request timeout in seconds. Defaults to 5.
+
+    Returns:
+        str: A formatted JSON string of the provider parameters returned by the
+            server. If the provider is not supported, the request fails, or the
+            response cannot be parsed as a dictionary, returns a descriptive
+            error message.
+    """
+    provider_key = (provider or "").strip().lower()
+    allowed_providers = list(PARAMS_URL.keys())
+
+    if provider_key not in PARAMS_URL:
+        return (
+            f"Invalid provider '{provider}'. "
+            f"Allowed providers: {', '.join(allowed_providers)}"
+        )
+
+    url = PARAMS_URL[provider_key]
+    try:
+        response = requests.get(url, timeout=timeout)
+        response.raise_for_status()
+        data = response.json()
+        if not isinstance(data, dict):
+            return (
+                f"Unexpected response type from {url}: "
+                f"expected dict, got {type(data).__name__}"
+            )
+        return json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True)
+    except requests.RequestException as E:
+        return f"Failed to fetch provider parameters from {url}: {E}"
+    except ValueError as E:
+        return f"Failed to parse JSON response from {url}: {E}"
+    except Exception as E:
+        return str(E)
