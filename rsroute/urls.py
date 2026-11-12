@@ -1,17 +1,24 @@
 ROOT_URL = "http://0.0.0.0:8000/"
-GEMINI_URL = "http://0.0.0.0:8000/v1/gemini/chat"
-MISTRAL_URL = "http://0.0.0.0:8000/v1/mistral/chat"
-GROQ_URL = "http://0.0.0.0:8000/v1/groq/chat"
-OPENROUTER_URL = "http://0.0.0.0:8000/v1/openrouter/chat"
-OPENAI_URL = "http://0.0.0.0:8000/v1/openai/chat"
+GEMINI = f"{ROOT_URL}v1/gemini"
+MISTRAL = f"{ROOT_URL}v1/mistral"
+OPENROUTER = f"{ROOT_URL}v1/openrouter"
+OPENAI = f"{ROOT_URL}v1/openai"
+GROQ = f"{ROOT_URL}v1/groq"
+
+
+GEMINI_URL = f"{GEMINI}/chat"
+MISTRAL_URL = f"{MISTRAL}/chat"
+GROQ_URL = f"{GROQ}/chat"
+OPENROUTER_URL = f"{OPENROUTER}/chat"
+OPENAI_URL = f"{OPENAI}/chat"
 
 
 # Agentic Routes
-GEMINI_AGENT = "http://0.0.0.0:8000/v1/gemini/agent"
-MISTRAL_AGENT = "http://0.0.0.0:8000/v1/mistral/agent"
-GROQ_AGENT = "http://0.0.0.0:8000/v1/groq/agent"
-OPENROUTER_AGENT = "http://0.0.0.0:8000/v1/openrouter/agent"
-OPENAI_AGENT = "http://0.0.0.0:8000/v1/openai/agent"
+GEMINI_AGENT = f"{GEMINI}/agent"
+MISTRAL_AGENT = f"{MISTRAL}/agent"
+GROQ_AGENT = f"{GROQ}/agent"
+OPENROUTER_AGENT = f"{OPENROUTER}/agent"
+OPENAI_AGENT = f"{OPENAI}/agent"
 
 
 URLS = {
@@ -41,4 +48,13 @@ END_POINTS = {
     "openrouter_agent": "/v1/openrouter/agent",
     "openai": "/v1/openai/chat",
     "openai_agent": "/v1/openai/agent"
+}
+
+
+PARAMS_URL = {
+    "gemini": f"{GEMINI}/parameters",
+    "groq": f"{GROQ}/parameters",
+    "openrouter": f"{OPENROUTER}/parameters",
+    "openai": f"{OPENAI}/parameters",
+    "mistral": f"{MISTRAL}/parameters"
 }
